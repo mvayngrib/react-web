@@ -24,7 +24,7 @@ project.xcworkspace
 
 # node.js
 #
-lib/
+Libraries/
 node_modules/
 npm-debug.log
 .idea/*
