@@ -39,8 +39,8 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCENE_DISABLED_NATIVE_PROPS = {
   pointerEvents: 'none',
   style: {
-    top: SCREEN_HEIGHT,
-    bottom: -SCREEN_HEIGHT,
+    // top: SCREEN_HEIGHT,
+    // bottom: -SCREEN_HEIGHT,
     opacity: 0,
   },
 };
@@ -90,8 +90,8 @@ let styles = StyleSheet.create({
     top: 0,
   },
   disabledScene: {
-    top: SCREEN_HEIGHT,
-    bottom: -SCREEN_HEIGHT,
+    // top: SCREEN_HEIGHT,
+    // bottom: -SCREEN_HEIGHT,
   },
   transitioner: {
     flex: 1,
