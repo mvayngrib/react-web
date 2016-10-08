@@ -11,18 +11,18 @@
 
 import React, { Component, PropTypes } from 'react';
 import NavigatorNavigationBarStylesAndroid from 'ReactNavigatorNavigationBarStylesAndroid';
-import computeNavigatorNavigationBarStylesIOS from 'ReactNavigatorNavigationBarStylesIOS';
+import NavigatorNavigationBarStylesIOS from 'ReactNavigatorNavigationBarStylesIOS';
 import Platform from 'ReactStyleSheet';
 import StyleSheet from 'ReactStyleSheet';
 import View from 'ReactView';
+import Dimensions from 'ReactDimensions';
 import { Map } from 'immutable';
 import autobind from 'autobind-decorator';
 
 var COMPONENT_NAMES = ['Title', 'LeftButton', 'RightButton'];
 
-var computeNavigatorNavigationBarStyles = function () {
-  return Platform.OS === 'android' ? NavigatorNavigationBarStylesAndroid : computeNavigatorNavigationBarStylesIOS()
-}
+var NavigatorNavigationBarStyles = Platform.OS === 'android' ?
+  NavigatorNavigationBarStylesAndroid : NavigatorNavigationBarStylesIOS;
 
 var navStatePresentedIndex = function(navState) {
   if (navState.presentedIndex !== undefined) {
@@ -45,6 +45,7 @@ class NavigatorNavigationBar extends Component {
       this._descriptors[componentName] = new Map();
     });
 
+    this._handleResize = this._handleResize.bind(this)
   }
 
   static propTypes = {
@@ -63,13 +64,13 @@ class NavigatorNavigationBar extends Component {
   }
 
   static statics = {
-    get Styles() { return computeNavigatorNavigationBarStyles() },
-    get StylesAndroid() { return NavigatorNavigationBarStylesAndroid },
-    get StylesIOS() { return computeNavigatorNavigationBarStylesIOS() },
+    Styles: NavigatorNavigationBarStyles,
+    StylesAndroid: NavigatorNavigationBarStylesAndroid,
+    StylesIOS: NavigatorNavigationBarStylesIOS,
   }
 
   static defaultProps = {
-    get navigationStyles() { return computeNavigatorNavigationBarStyles() }
+    navigationStyles: NavigatorNavigationBarStyles,
   }
 
   _getReusableProps(
@@ -131,6 +132,24 @@ class NavigatorNavigationBar extends Component {
     for (var index = min; index <= max; index++) {
       this._updateIndexProgress(progress, index, fromIndex, toIndex);
     }
+  }
+
+  componentWillMount() {
+    window.addEventListener('resize', this._handleResize)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._handleResize)
+    clearTimeout(this._resizeTimeout)
+  }
+
+  _handleResize() {
+    const self = this
+    clearTimeout(this._resizeTimeout)
+    // debounce
+    this._resizeTimeout = setTimeout(function () {
+      self.setState({ dimensions: Dimensions.get('window') })
+    }, 100)
   }
 
   render() {
