@@ -11,7 +11,7 @@
 
 import React, { Component, PropTypes } from 'react';
 import NavigatorNavigationBarStylesAndroid from 'ReactNavigatorNavigationBarStylesAndroid';
-import NavigatorNavigationBarStylesIOS from 'ReactNavigatorNavigationBarStylesIOS';
+import computeNavigatorNavigationBarStylesIOS from 'ReactNavigatorNavigationBarStylesIOS';
 import Platform from 'ReactStyleSheet';
 import StyleSheet from 'ReactStyleSheet';
 import View from 'ReactView';
@@ -20,8 +20,9 @@ import autobind from 'autobind-decorator';
 
 var COMPONENT_NAMES = ['Title', 'LeftButton', 'RightButton'];
 
-var NavigatorNavigationBarStyles = Platform.OS === 'android' ?
-  NavigatorNavigationBarStylesAndroid : NavigatorNavigationBarStylesIOS;
+var computeNavigatorNavigationBarStyles = function () {
+  return Platform.OS === 'android' ? NavigatorNavigationBarStylesAndroid : computeNavigatorNavigationBarStylesIOS()
+}
 
 var navStatePresentedIndex = function(navState) {
   if (navState.presentedIndex !== undefined) {
@@ -62,13 +63,13 @@ class NavigatorNavigationBar extends Component {
   }
 
   static statics = {
-    Styles: NavigatorNavigationBarStyles,
-    StylesAndroid: NavigatorNavigationBarStylesAndroid,
-    StylesIOS: NavigatorNavigationBarStylesIOS,
+    get Styles() { return computeNavigatorNavigationBarStyles() },
+    get StylesAndroid() { return NavigatorNavigationBarStylesAndroid },
+    get StylesIOS() { return computeNavigatorNavigationBarStylesIOS() },
   }
 
   static defaultProps = {
-    navigationStyles: NavigatorNavigationBarStyles,
+    get navigationStyles() { return computeNavigatorNavigationBarStyles() }
   }
 
   _getReusableProps(
