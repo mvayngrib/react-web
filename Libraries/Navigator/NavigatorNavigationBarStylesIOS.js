@@ -48,6 +48,7 @@ var BASE_STYLES = {
   },
 };
 
+var caches = {}
 var opacityRatio = 100;
 
 // There are 3 stages: left, center, right. All previous navigation
