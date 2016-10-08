@@ -19,6 +19,7 @@ resolver.getHasteMap().then(function(hasteMap){
   files.forEach(function(filePath){
 
     var options = {
+      sourceMaps: 'inline',
       presets: ['react-native', 'stage-1'],
       plugins: [
         [require('./rewrite-modules'), {
