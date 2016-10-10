@@ -31,6 +31,16 @@ import createHistory from 'history/lib/createHashHistory';
 let history = createHistory();
 let _unlisten;
 
+const hiddenStyle = {
+  opacity: 0,
+  visibility: 'hidden'
+}
+
+const visibleStyle = {
+  opacity: 1,
+  visibility: 'visible'
+}
+
 // TODO: this is not ideal because there is no guarantee that the navigator
 // is full screen, hwoever we don't have a good way to measure the actual
 // size of the navigator right now, so this is the next best thing.
@@ -38,35 +48,13 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCENE_DISABLED_NATIVE_PROPS = {
   pointerEvents: 'none',
-  style: {
-    // top: SCREEN_HEIGHT,
-    // bottom: -SCREEN_HEIGHT,
-    opacity: 0,
-  },
+  style: hiddenStyle
 };
 
-let __uid = 0;
-function getuid() {
-  return __uid++;
-}
-
-function getRouteID(route) {
-  if (route === null || typeof route !== 'object') {
-    return String(route);
-  }
-
-  let key = '__navigatorRouteID';
-
-  if (!route.hasOwnProperty(key)) {
-    Object.defineProperty(route, key, {
-      enumerable: false,
-      configurable: false,
-      writable: false,
-      value: getuid(),
-    });
-  }
-  return route[key];
-}
+// let __uid = 0;
+// function getuid() {
+//   return __uid++;
+// }
 
 // styles moved to the top of the file so getDefaultProps can refer to it
 let styles = StyleSheet.create({
@@ -80,6 +68,7 @@ let styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     top: 0,
+    visibility: 'visible'
   },
   baseScene: {
     position: 'absolute',
@@ -89,10 +78,10 @@ let styles = StyleSheet.create({
     bottom: 0,
     top: 0,
   },
-  disabledScene: {
-    // top: SCREEN_HEIGHT,
-    // bottom: -SCREEN_HEIGHT,
-  },
+  // disabledScene: {
+  //   top: SCREEN_HEIGHT,
+  //   bottom: -SCREEN_HEIGHT,
+  // },
   transitioner: {
     flex: 1,
     backgroundColor: 'transparent',
@@ -349,6 +338,18 @@ let Navigator = React.createClass({
 
   },
 
+  _nextRouteID: function (replace) {
+    return this.state.routeStack.length - (replace ? 1 : 0)
+  },
+
+  _getRouteID: function (route, action) {
+    if (route === null || typeof route !== 'object') {
+      return String(route);
+    }
+
+    return this.state.routeStack.indexOf(route)
+  },
+
   /**
    * @param {RouteStack} nextRouteStack Next route stack to reinitialize. This
    * doesn't accept stack item `id`s, which implies that all existing items are
@@ -357,6 +358,10 @@ let Navigator = React.createClass({
    * items.
    */
   immediatelyResetRouteStack: function(nextRouteStack) {
+    console.warn('navigator.immediatelyResetRouteStack breaks the back button!')
+
+    const self = this
+    const prevLength = this.state.routeStack.length
     let destIndex = nextRouteStack.length - 1;
     this.setState({
       routeStack: nextRouteStack,
@@ -374,6 +379,7 @@ let Navigator = React.createClass({
 
   _transitionTo: function(destIndex, velocity, jumpSpringTo, cb) {
     if (destIndex === this.state.presentedIndex) {
+      this._hideScenes();
       return;
     }
     if (this.state.transitionFromIndex !== null) {
@@ -384,18 +390,24 @@ let Navigator = React.createClass({
       });
       return;
     }
-    this.state.transitionFromIndex = this.state.presentedIndex;
-    this.state.presentedIndex = destIndex;
-    this.state.transitionCb = cb;
+
+    const transitionFromIndex = this.state.presentedIndex
+    // give scenes a chance to re-render
+    this.setState({
+      presentedIndex: destIndex,
+      transitionFromIndex,
+      transitionCb: cb
+    })
+
     this._onAnimationStart();
     // if (AnimationsDebugModule) {
     //   AnimationsDebugModule.startRecordingFps();
     // }
-    let sceneConfig = this.state.sceneConfigStack[this.state.transitionFromIndex] ||
-      this.state.sceneConfigStack[this.state.presentedIndex];
+    let sceneConfig = this.state.sceneConfigStack[transitionFromIndex] ||
+      this.state.sceneConfigStack[destIndex];
     invariant(
       sceneConfig,
-      'Cannot configure scene at index ' + this.state.transitionFromIndex
+      'Cannot configure scene at index ' + transitionFromIndex
     );
     if (jumpSpringTo != null) {
       this.spring.setCurrentValue(jumpSpringTo);
@@ -533,21 +545,25 @@ let Navigator = React.createClass({
     // First, determine what the defined styles are for scenes in this navigator
     let sceneStyle = flattenStyle([styles.baseScene, this.props.sceneStyle]);
     // Then restore the pointer events and top value for this scene
-    let enabledSceneNativeProps = {
+    let sceneNativeProps = {
       pointerEvents: 'auto',
       style: {
         top: sceneStyle.top,
         bottom: sceneStyle.bottom,
+        ...visibleStyle
       },
     };
-    if (sceneIndex !== this.state.transitionFromIndex &&
-        sceneIndex !== this.state.presentedIndex) {
-      // If we are not in a transition from this index, make sure opacity is 0
-      // to prevent the enabled scene from flashing over the presented scene
-      enabledSceneNativeProps.style.opacity = 0;
-    }
+
+    // if (sceneIndex !== this.state.transitionFromIndex &&
+    //     sceneIndex !== this.state.presentedIndex) {
+    //   // If we are not in a transition from this index, make sure opacity is 0
+    //   // to prevent the enabled scene from flashing over the presented scene
+    //   sceneNativeProps.pointerEvents = 'none';
+    //   Object.assign(sceneNativeProps.style, SCENE_DISABLED_NATIVE_PROPS.style)
+    // }
+
     this.refs['scene_' + sceneIndex] &&
-    this.refs['scene_' + sceneIndex].setNativeProps(enabledSceneNativeProps);
+    this.refs['scene_' + sceneIndex].setNativeProps(sceneNativeProps);
   },
 
   _onAnimationStart: function() {
@@ -868,20 +884,21 @@ let Navigator = React.createClass({
   _jumpN: function(n) {
     let destIndex = this._getDestIndexWithinBounds(n);
     this._enableScene(destIndex);
-    this._emitWillFocus(this.state.routeStack[destIndex]);
+    const route = this.state.routeStack[destIndex]
+    this._emitWillFocus(route);
     this._transitionTo(destIndex);
     if (!this.hashChanged) {
       if (n > 0) {
-        history.pushState({ index: destIndex }, '/scene_' + getRouteID(this.state.routeStack[destIndex]));
+        history.pushState({ index: destIndex }, '/scene_' + this._getRouteID(route));
       } else {
         history.go(n);
       }
       return;
     }
-    if (n < 0) {
-      // __uid should be non-negative
-      __uid = Math.max(__uid + n, 0);
-    }
+    // if (n < 0) {
+    //   // __uid should be non-negative
+    //   __uid = Math.max(__uid + n, 0);
+    // }
   },
 
   jumpTo: function(route) {
@@ -915,8 +932,9 @@ let Navigator = React.createClass({
     this.setState({
       routeStack: nextStack,
       sceneConfigStack: nextAnimationConfigStack,
+      // presentedIndex: destIndex
     }, () => {
-      history.pushState({ index: destIndex }, '/scene_' + getRouteID(route));
+      history.pushState({ index: destIndex }, '/scene_' + this._getRouteID(route));
       this._enableScene(destIndex);
       this._transitionTo(destIndex);
     });
@@ -976,6 +994,11 @@ let Navigator = React.createClass({
       return;
     }
 
+    const replaceCurrent = index === this.state.presentedIndex
+    if (!replaceCurrent) {
+      console.warn('navigator.replaceAtIndex for the non-current route breaks the back button!')
+    }
+
     let nextRouteStack = this.state.routeStack.slice();
     let nextAnimationModeStack = this.state.sceneConfigStack.slice();
     nextRouteStack[index] = route;
@@ -987,10 +1010,17 @@ let Navigator = React.createClass({
     this.setState({
       routeStack: nextRouteStack,
       sceneConfigStack: nextAnimationModeStack,
+      presentedIndex: index,
+      transitionFromIndex: null
     }, () => {
       if (index === this.state.presentedIndex) {
         this._emitDidFocus(route);
       }
+
+      if (replaceCurrent) {
+        history.replaceState({ index }, '/scene_' + this._getRouteID(route));
+      }
+
       cb && cb();
     });
   },
@@ -1054,27 +1084,29 @@ let Navigator = React.createClass({
       this.setState({
         sceneConfigStack: this.state.sceneConfigStack.slice(0, newStackLength),
         routeStack: this.state.routeStack.slice(0, newStackLength),
+        presentedIndex: index
       });
     }
   },
 
   _renderScene: function(route, i) {
-    let disabledSceneStyle = null;
-    let disabledScenePointerEvents = 'auto';
+    // let disabledSceneStyle = null;
+    let pointerEvents = 'auto';
     if (i !== this.state.presentedIndex) {
-      disabledSceneStyle = styles.disabledScene;
-      disabledScenePointerEvents = 'none';
+      // disabledSceneStyle = styles.disabledScene;
+      pointerEvents = 'none';
     }
 
+    const routeId = this._getRouteID(route)
     return (
       <View
-        key={'scene_' + getRouteID(route)}
-        ref={'scene_' + i}
+        key={'scene_' + routeId}
+        ref={'scene_' + routeId}
         onStartShouldSetResponderCapture={() => {
           return (this.state.transitionFromIndex != null) || (this.state.transitionFromIndex != null);
         }}
-        pointerEvents={disabledScenePointerEvents}
-        style={[styles.baseScene, this.props.sceneStyle, disabledSceneStyle]}>
+        pointerEvents={pointerEvents}
+        style={[styles.baseScene, this.props.sceneStyle/*, disabledSceneStyle*/]}>
         {this.props.renderScene(
           route,
           this
