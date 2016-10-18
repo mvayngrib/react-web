@@ -71,6 +71,13 @@ else flexboxSpec = '2009';
 var isUCBrowser = /UCBrowser/i.test(navigator.userAgent);
 if (isUCBrowser) flexboxSpec = '2009';
 
+var isIE =
+  // IE <= 10
+  global.navigator.userAgent.indexOf("MSIE ") > 0 ||
+  // IE11
+  !(global.ActiveXObject) && "ActiveXObject" in global
+
+
 // TODO: cache the result
 function prefixOldFlexbox(property, value, result) {
 
@@ -104,11 +111,51 @@ function prefixOldFlexbox(property, value, result) {
   }
 }
 
+// https://github.com/philipwalton/flexbugs
+//     Declaration           What it should mean     What it means in IE 10
+// 1.  (no flex declaration) flex: 0 1 auto          flex: 0 0 auto
+// 2.  flex: 1               flex: 1 1 0%            flex: 1 0 0px
+// 3.  flex: auto            flex: 1 1 auto          flex: 1 0 auto
+// 4.  flex: initial         flex: 0 1 auto          flex: 0 0 auto
+
+const FLEX_AUTO = '1 1 auto'
+const FLEX_INITIAL = '0 1 auto'
+
+function getFlexExpansion (style) {
+  // https://roland.codes/blog/ie-flex-collapse-bug/
+  const defaultBasis = isIE ? 'auto' : '0%'
+  const flex = style.flex
+  if (flex == null) {
+    if (style.flexGrow == null && style.flexShrink == null && style.flexBasis == null) {
+      return FLEX_INITIAL
+    }
+
+    // ^ line 1
+    const grow = style.flexGrow || '0'
+    const shrink = style.flexShrink || '1'
+    const basis = style.flexBasis || defaultBasis
+    return `${grow} ${shrink} ${basis}`
+  }
+
+  // ^ line 2
+  // if flex is a number of a stringified number
+  if (!isNaN(flex)) {
+    return `${flex} 1 ${defaultBasis}`
+  }
+
+  // ^ lines 3, 4
+  if (flex === 'auto') {
+    return FLEX_AUTO
+  } else if (flex === 'initial') {
+    return FLEX_INITIAL
+  }
+
+  // flex was set explicitly
+  return flex
+}
+
 function defaultFlexExpansion (style, result) {
-  const grow = style.flex
-  const shrink = style.flexShrink != null ? style.flexShrink : 1
-  const basis = style.flexBasis != null ? style.flexBasis : 'auto'
-  result.flex = `${grow} ${shrink} ${basis}`
+  result.flex = getFlexExpansion(style)
 }
 
 function extendBoxProperties(property, value, result) {
