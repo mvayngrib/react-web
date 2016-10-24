@@ -322,7 +322,10 @@ let Navigator = React.createClass({
       if (destIndex < this.state.routeStack.length && destIndex != this.state.routeStack.length) {
         this.hashChanged = true;
         this._jumpN(destIndex - this.state.presentedIndex);
-        this._cleanScenesPastIndex(destIndex);
+        if (destIndex > this.state.presentedIndex) {
+          this._cleanScenesPastIndex(destIndex);
+        }
+
         this.hashChanged = false;
       }
     }.bind(this));
