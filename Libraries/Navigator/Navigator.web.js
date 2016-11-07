@@ -319,12 +319,14 @@ let Navigator = React.createClass({
       if (location.pathname.indexOf('/scene_') != -1) {
         destIndex = parseInt(location.pathname.replace('/scene_', ''));
       }
-      if (destIndex < this.state.routeStack.length && destIndex != this.state.routeStack.length) {
+      if (destIndex < this.state.routeStack.length) {
         this.hashChanged = true;
         this._jumpN(destIndex - this.state.presentedIndex);
-        if (destIndex > this.state.presentedIndex) {
+        // to support forward button, uncomment the if
+        // BUT it'll require your route components to support componentWillReceiveProps
+        // if (destIndex > this.state.presentedIndex) {
           this._cleanScenesPastIndex(destIndex);
-        }
+        // }
 
         this.hashChanged = false;
       }
