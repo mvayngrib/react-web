@@ -77,6 +77,9 @@ var isIE =
   // IE11
   !(global.ActiveXObject) && "ActiveXObject" in global
 
+var isSafari =
+  navigator.userAgent.indexOf('Safari') !== -1 &&
+  navigator.userAgent.indexOf('Chrome') === -1
 
 // TODO: cache the result
 function prefixOldFlexbox(property, value, result) {
@@ -120,10 +123,11 @@ function prefixOldFlexbox(property, value, result) {
 
 const FLEX_AUTO = '1 1 auto'
 const FLEX_INITIAL = '0 1 auto'
+const DEFAULT_BASIS = isIE || isSafari ? 'auto' : '0%'
+const DEFAULT_SHRINK = isSafari ? '0' : '1'
 
 function getFlexExpansion (style) {
   // https://roland.codes/blog/ie-flex-collapse-bug/
-  const defaultBasis = isIE ? 'auto' : '0%'
   const flex = style.flex
   if (flex == null) {
     if (style.flexGrow == null && style.flexShrink == null && style.flexBasis == null) {
@@ -132,15 +136,15 @@ function getFlexExpansion (style) {
 
     // ^ line 1
     const grow = style.flexGrow || '0'
-    const shrink = style.flexShrink || '1'
-    const basis = style.flexBasis || defaultBasis
+    const shrink = style.flexShrink || DEFAULT_SHRINK
+    const basis = style.flexBasis || DEFAULT_BASIS
     return `${grow} ${shrink} ${basis}`
   }
 
   // ^ line 2
-  // if flex is a number of a stringified number
+  // if flex is a number or a stringified number
   if (!isNaN(flex)) {
-    return `${flex} 1 ${defaultBasis}`
+    return `${flex} ${DEFAULT_SHRINK} ${DEFAULT_BASIS}`
   }
 
   // ^ lines 3, 4
