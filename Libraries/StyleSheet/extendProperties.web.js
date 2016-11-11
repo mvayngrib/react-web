@@ -71,15 +71,15 @@ else flexboxSpec = '2009';
 var isUCBrowser = /UCBrowser/i.test(navigator.userAgent);
 if (isUCBrowser) flexboxSpec = '2009';
 
-var isIE =
-  // IE <= 10
-  global.navigator.userAgent.indexOf("MSIE ") > 0 ||
-  // IE11
-  !(global.ActiveXObject) && "ActiveXObject" in global
-
-var isSafari =
+const isIE = /Trident/i.test(navigator.userAgent);
+const isSafari =
   navigator.userAgent.indexOf('Safari') !== -1 &&
   navigator.userAgent.indexOf('Chrome') === -1
+
+const FLEX_AUTO = '1 1 auto'
+const FLEX_INITIAL = '0 1 auto'
+const DEFAULT_BASIS = isIE || isSafari ? 'auto' : '0%'
+const DEFAULT_SHRINK = isSafari ? '0' : '1'
 
 // TODO: cache the result
 function prefixOldFlexbox(property, value, result) {
@@ -120,11 +120,6 @@ function prefixOldFlexbox(property, value, result) {
 // 2.  flex: 1               flex: 1 1 0%            flex: 1 0 0px
 // 3.  flex: auto            flex: 1 1 auto          flex: 1 0 auto
 // 4.  flex: initial         flex: 0 1 auto          flex: 0 0 auto
-
-const FLEX_AUTO = '1 1 auto'
-const FLEX_INITIAL = '0 1 auto'
-const DEFAULT_BASIS = isIE || isSafari ? 'auto' : '0%'
-const DEFAULT_SHRINK = isSafari ? '0' : '1'
 
 function getFlexExpansion (style) {
   // https://roland.codes/blog/ie-flex-collapse-bug/
