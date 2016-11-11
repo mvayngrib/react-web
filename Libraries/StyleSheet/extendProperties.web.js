@@ -72,8 +72,14 @@ const isUCBrowser = /UCBrowser/i.test(navigator.userAgent);
 if (isUCBrowser) flexboxSpec = '2009';
 
 const isIE = /Trident/i.test(navigator.userAgent);
-const FLEX_AUTO = '1 1 auto';
-const FLEX_INITIAL = '0 1 auto';
+const isSafari =
+  navigator.userAgent.indexOf('Safari') !== -1 &&
+  navigator.userAgent.indexOf('Chrome') === -1
+
+const FLEX_AUTO = '1 1 auto'
+const FLEX_INITIAL = '0 1 auto'
+const DEFAULT_BASIS = isIE || isSafari ? 'auto' : '0%'
+const DEFAULT_SHRINK = isSafari ? '0' : '1'
 
 // TODO: cache the result
 function prefixOldFlexbox(property, value, result) {
@@ -108,20 +114,39 @@ function prefixOldFlexbox(property, value, result) {
   }
 }
 
-function defaultFlexExpansion (style, result) {
-  const grow = style.flex || 0;
-  const shrink = style.flexShrink || 1;
-  const basis = style.flexBasis || 'auto';
-  let flex;
-  
-  if (grow === 'auto') {
-    flex = FLEX_AUTO;
-  } else if (grow === 'initial') {
-    flex = FLEX_INITIAL;
-  } else if (isNaN(grow)) {
-    flex = grow;
-  } else {
-    flex = `${grow} ${shrink} ${basis}`;
+// https://github.com/philipwalton/flexbugs
+//     Declaration           What it should mean     What it means in IE 10
+// 1.  (no flex declaration) flex: 0 1 auto          flex: 0 0 auto
+// 2.  flex: 1               flex: 1 1 0%            flex: 1 0 0px
+// 3.  flex: auto            flex: 1 1 auto          flex: 1 0 auto
+// 4.  flex: initial         flex: 0 1 auto          flex: 0 0 auto
+
+function getFlexExpansion (style) {
+  // https://roland.codes/blog/ie-flex-collapse-bug/
+  const flex = style.flex
+  if (flex == null) {
+    if (style.flexGrow == null && style.flexShrink == null && style.flexBasis == null) {
+      return FLEX_INITIAL
+    }
+
+    // ^ line 1
+    const grow = style.flexGrow || '0'
+    const shrink = style.flexShrink || DEFAULT_SHRINK
+    const basis = style.flexBasis || DEFAULT_BASIS
+    return `${grow} ${shrink} ${basis}`
+  }
+
+  // ^ line 2
+  // if flex is a number or a stringified number
+  if (!isNaN(flex)) {
+    return `${flex} ${DEFAULT_SHRINK} ${DEFAULT_BASIS}`
+  }
+
+  // ^ lines 3, 4
+  if (flex === 'auto') {
+    return FLEX_AUTO
+  } else if (flex === 'initial') {
+    return FLEX_INITIAL
   }
 
   result.flex = flex;
