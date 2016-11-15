@@ -65,6 +65,7 @@ export PanResponder from 'ReactPanResponder';
 export PixelRatio from 'ReactPixelRatio';
 export StyleSheet from 'ReactStyleSheet';
 export NetInfo from 'ReactNetInfo'
+export AppState from 'ReactAppState'
 
 // Plugins
 export NativeModules from 'ReactNativeModules';
