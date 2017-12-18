@@ -67,7 +67,7 @@ class ViewPager extends React.Component {
   state = {
     selectedPage: this.props.initialPage,
     pageWidth: deviceSize.width,
-    pageCount: this.props.children.length,
+    pageCount: [].concat(this.props.children).length,
     offsetLeft: new Animated.Value(0)
   }
 
