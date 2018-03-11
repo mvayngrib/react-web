@@ -13,7 +13,7 @@ import ReactDOM from 'react-dom';
 import ScrollResponder from 'ReactScrollResponder';
 import StyleSheet from 'ReactStyleSheet';
 import View from 'ReactView';
-import throttle from 'domkit/throttle';
+import throttle from 'throttleit';
 import mixin from 'react-mixin';
 import autobind from 'autobind-decorator';
 
