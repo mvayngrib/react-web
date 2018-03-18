@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.js"],"names":["NotImplement"],"mappings":"yEAAwBA,Y,CAAT,QAASA,aAAT,EAAwB,CACrC,MAAO,KAAP,CACD","file":"index.js","sourcesContent":["export default function NotImplement() {\n  return null;\n}\n"]}

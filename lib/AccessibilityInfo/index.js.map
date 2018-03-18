@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.js"],"names":[],"mappings":"mHAAA","file":"index.js","sourcesContent":["export * from './AccessibilityInfo.web';\n"]}

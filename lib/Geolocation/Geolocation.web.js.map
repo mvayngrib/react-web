@@ -1,0 +1,1 @@
+{"version":3,"sources":["Geolocation.web.js"],"names":["navigator","geolocation"],"mappings":"AAIA,a,yEAEeA,UAAUC,W","file":"Geolocation.web.js","sourcesContent":["/**\n * Copyright (c) 2015-present, Alibaba Group Holding Limited.\n * All rights reserved.\n */\n'use strict';\n\nexport default navigator.geolocation;\n"]}
