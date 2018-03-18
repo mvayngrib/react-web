@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git@github.com:taobaofed/react-web.git"
   },
-  "main": "./src/index.js",
+  "main": "./lib/index.js",
   "keywords": [
     "react-native",
     "react-native-web",
@@ -18,7 +18,9 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint --ext .js --ext .jsx ./ --fix",
-    "prepublish": "npm run lint"
+    "compile": "node scripts/compile.js",
+    "prepublish": "npm run lint && npm run compile",
+    "postpublish": "rm -rf ./lib"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

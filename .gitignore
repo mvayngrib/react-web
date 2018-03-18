@@ -27,6 +27,5 @@ project.xcworkspace
 
 # node.js
 #
-lib/
 node_modules/
 .idea/

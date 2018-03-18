@@ -27,10 +27,16 @@ resolver.getHasteMap().then(function(hasteMap) {
             platform: 'web'
           }],
         ],
+        sourceMaps: true
       };
-      var code = babel.transformFileSync(filePath, options).code;
+      var { code, map } = babel.transformFileSync(filePath, options);
       var buildPath = filePath.replace('src', 'lib');
       easyfile.write(buildPath, code, {
+        force: true,
+        backup: false,
+      });
+
+      easyfile.write(`${buildPath}.map`, JSON.stringify(map), {
         force: true,
         backup: false,
       });
