@@ -17,7 +17,6 @@ export {
   ImageBackground,
   KeyboardAvoidingView,
   ListView,
-  Modal,
   Picker,
   ProgressBar,
   RefreshControl,
@@ -73,6 +72,7 @@ export LayoutAnimation from './LayoutAnimation';
 export AccessibilityInfo from './AccessibilityInfo';
 export Geolocation from './Geolocation';
 export Settings from './Settings';
+export Modal from './Modal';
 
 // export Share from './NotImplement';
 // export Systrace from './NotImplement';
