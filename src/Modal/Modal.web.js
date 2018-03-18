@@ -9,6 +9,7 @@
 import React, { Component } from 'react';
 import { View, StyleSheet } from 'react-native-web';
 import PropTypes from 'prop-types';
+import applyNativeMethods from 'react-native-web/dist/modules/applyNativeMethods';
 
 class Modal extends Component {
   render() {
@@ -61,6 +62,8 @@ let styles = StyleSheet.create({
   }
 });
 
-Modal.isReactNativeComponent = true;
+Modal = applyNativeMethods(Modal)
 
-export default Modal;
+export {
+  Modal
+}

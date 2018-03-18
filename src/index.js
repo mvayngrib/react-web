@@ -66,13 +66,23 @@ export {
   ViewPropTypes,
 } from 'react-native-web';
 
-export WebView from 'react-native-web-webview';
-export Alert from './Alert';
-export LayoutAnimation from './LayoutAnimation';
-export AccessibilityInfo from './AccessibilityInfo';
-export Geolocation from './Geolocation';
-export Settings from './Settings';
-export Modal from './Modal';
+import WebView from 'react-native-web-webview';
+import Alert from './Alert';
+import LayoutAnimation from './LayoutAnimation';
+import AccessibilityInfo from './AccessibilityInfo';
+import Geolocation from './Geolocation';
+import Settings from './Geolocation';
+import { Modal } from './Modal';
+
+export {
+  WebView,
+  Alert,
+  LayoutAnimation,
+  AccessibilityInfo,
+  Geolocation,
+  Settings,
+  Modal,
+}
 
 // export Share from './NotImplement';
 // export Systrace from './NotImplement';
