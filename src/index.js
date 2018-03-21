@@ -36,6 +36,7 @@ export {
   View,
   VirtualizedList,
   // APIs
+  createElement,
   findNodeHandle,
   Animated,
   AppRegistry,
@@ -57,6 +58,8 @@ export {
   UIManager,
   Vibration,
   // Plugins
+  render,
+  unmountComponentAtNode,
   processColor,
   NativeModules,
   // Prop Types
@@ -64,6 +67,7 @@ export {
   EdgeInsetsPropType,
   PointPropType,
   ViewPropTypes,
+  TextPropTypes,
 } from 'react-native-web';
 
 import WebView from 'react-native-web-webview';
