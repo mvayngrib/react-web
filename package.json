@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "fbjs": "0.8.16",
-    "prop-types": "15.6.0",
+    "prop-types": "^15.5.0",
     "react-native-web": "^0.5.3",
     "react-native-web-webview": "^0.2.5"
   }
